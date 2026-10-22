@@ -1,0 +1,3 @@
+import { PrismaClient } from "@prisma/client";
+const prisma=new PrismaClient();
+try{const employee=await prisma.role.findUniqueOrThrow({where:{code:"EMPLOYEE"}});const users=await prisma.user.findMany({include:{role:true}});let normalized=0;for(const user of users){if(["OPS","ADMIN"].includes(user.role.code)){await prisma.userPermission.upsert({where:{userId_roleCode:{userId:user.id,roleCode:user.role.code}},create:{userId:user.id,roleCode:user.role.code},update:{}});}if(user.roleId!==employee.id){await prisma.user.update({where:{id:user.id},data:{roleId:employee.id}});normalized++;}}console.log(JSON.stringify({users:users.length,normalized},null,2));}finally{await prisma.$disconnect();}

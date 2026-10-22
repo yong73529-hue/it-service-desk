@@ -1,0 +1,332 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Role {
+  id    String @id @default(cuid())
+  code  String @unique
+  name  String
+  users User[]
+}
+
+model Department {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  users     User[]
+  tickets   Ticket[]
+  assets    Asset[]
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id                   String                    @id @default(cuid())
+  name                 String
+  email                String?                   @unique
+  phone                String?
+  wecomUserId          String?                   @unique
+  roleId               String
+  role                 Role                      @relation(fields: [roleId], references: [id])
+  departmentId         String?
+  department           Department?               @relation(fields: [departmentId], references: [id])
+  active               Boolean                   @default(true)
+  opsAvailable         Boolean                   @default(true)
+  notifyNewTickets     Boolean                   @default(false)
+  notifyReplies        Boolean                   @default(false)
+  notifySla            Boolean                   @default(false)
+  notifyDaily          Boolean                   @default(false)
+  notificationsPaused  Boolean                   @default(false)
+  createdTickets       Ticket[]                  @relation("TicketCreator")
+  assignedTickets      Ticket[]                  @relation("TicketAssignee")
+  logs                 TicketLog[]
+  comments             TicketComment[]
+  commentAttachments   TicketCommentAttachment[]
+  attachments          TicketAttachment[]
+  knowledgeArticles    KnowledgeArticle[]        @relation("KnowledgePublisher")
+  auditLogs            AuditLog[]
+  permissions          UserPermission[]          @relation("PermissionUser")
+  grantedPermissions   UserPermission[]          @relation("PermissionGrantor")
+  dutySchedules        DutySchedule[]            @relation("DutyUser")
+  createdDutySchedules DutySchedule[]            @relation("DutyCreator")
+  savedTicketFilters   SavedTicketFilter[]
+  suggestions          Suggestion[]              @relation("SuggestionCreator")
+  reviewedSuggestions  Suggestion[]              @relation("SuggestionReviewer")
+  assistantMessages    AssistantMessage[]
+  createdAt            DateTime                  @default(now())
+  updatedAt            DateTime                  @updatedAt
+}
+
+model AssistantMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String
+  content   String
+  sources   String?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model Suggestion {
+  id           String    @id @default(cuid())
+  creatorId    String
+  creator      User      @relation("SuggestionCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  category     String
+  title        String
+  content      String
+  status       String    @default("NEW")
+  reviewedById String?
+  reviewedBy   User?     @relation("SuggestionReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([status, createdAt])
+  @@index([creatorId, createdAt])
+}
+
+model SlaPolicy {
+  id                      String   @id @default(cuid())
+  category                String   @unique
+  normalResponseMinutes   Int      @default(120)
+  urgentResponseMinutes   Int      @default(30)
+  normalResolutionMinutes Int      @default(1440)
+  urgentResolutionMinutes Int      @default(240)
+  businessStartHour       Int      @default(8)
+  businessEndHour         Int      @default(18)
+  businessDays            String   @default("1,2,3,4,5")
+  updatedAt               DateTime @updatedAt
+}
+
+model DutySchedule {
+  id          String   @id @default(cuid())
+  date        String   @unique
+  userId      String
+  user        User     @relation("DutyUser", fields: [userId], references: [id], onDelete: Cascade)
+  createdById String?
+  createdBy   User?    @relation("DutyCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+}
+
+model SavedTicketFilter {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  query     String
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model UserPermission {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation("PermissionUser", fields: [userId], references: [id], onDelete: Cascade)
+  roleCode    String
+  grantedById String?
+  grantedBy   User?    @relation("PermissionGrantor", fields: [grantedById], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, roleCode])
+  @@index([roleCode])
+}
+
+model Ticket {
+  id                  String             @id @default(cuid())
+  ticketNo            String             @unique
+  creatorId           String
+  creator             User               @relation("TicketCreator", fields: [creatorId], references: [id])
+  departmentId        String
+  department          Department         @relation(fields: [departmentId], references: [id])
+  contactPhone        String?
+  category            String
+  title               String
+  description         String
+  location            String
+  device              String
+  assetId             String?
+  asset               Asset?              @relation(fields: [assetId], references: [id], onDelete: SetNull)
+  priority            String             @default("NORMAL")
+  emergencyReason     String?
+  status              String             @default("PENDING")
+  assignedToId        String?
+  assignedTo          User?              @relation("TicketAssignee", fields: [assignedToId], references: [id])
+  currentSort         Int
+  cause               String?
+  resolution          String?
+  result              String?
+  replacedDevice      String?
+  completionNote      String?
+  userConfirmedAt     DateTime?
+  satisfactionRating  Int?
+  satisfactionComment String?
+  reopenedAt          DateTime?
+  reopenedCount       Int                @default(0)
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  acceptedAt          DateTime?
+  startedAt           DateTime?
+  resolvedAt          DateTime?
+  completedAt         DateTime?
+  cancelledAt         DateTime?
+  logs                TicketLog[]
+  attachments         TicketAttachment[]
+  comments            TicketComment[]
+  knowledgeArticle    KnowledgeArticle?
+
+  @@index([status, currentSort])
+  @@index([creatorId, createdAt])
+  @@index([departmentId, createdAt])
+  @@index([category, createdAt])
+  @@index([assetId, createdAt])
+}
+
+model Asset {
+  id           String      @id @default(cuid())
+  assetNo      String      @unique
+  name         String
+  category     String
+  brandModel   String?
+  serialNumber String?     @unique
+  location     String
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  status       String      @default("ACTIVE")
+  notes        String?
+  tickets      Ticket[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([category, status])
+  @@index([location])
+}
+
+model QuickOption {
+  id        String   @id @default(cuid())
+  type      String
+  label     String
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([type, label])
+  @@index([type, active, sortOrder])
+}
+
+model KnowledgeArticle {
+  id            String   @id @default(cuid())
+  ticketId      String?  @unique
+  ticket        Ticket?  @relation(fields: [ticketId], references: [id], onDelete: SetNull)
+  title         String
+  category      String
+  symptoms      String
+  cause         String
+  resolution    String
+  keywords      String?
+  sourceName    String?
+  publishedById String
+  publishedBy   User     @relation("KnowledgePublisher", fields: [publishedById], references: [id])
+  publishedAt   DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([category, publishedAt])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     String
+  entityType String
+  entityId   String?
+  detail     String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([userId, createdAt])
+}
+
+model TicketLog {
+  id         String   @id @default(cuid())
+  ticketId   String
+  ticket     Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  operatorId String
+  operator   User     @relation(fields: [operatorId], references: [id])
+  action     String
+  fromStatus String?
+  toStatus   String?
+  note       String?
+  createdAt  DateTime @default(now())
+
+  @@index([ticketId, createdAt])
+}
+
+model TicketAttachment {
+  id           String   @id @default(cuid())
+  ticketId     String
+  ticket       Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  uploaderId   String
+  uploader     User     @relation(fields: [uploaderId], references: [id])
+  originalName String
+  storagePath  String
+  mimeType     String
+  size         Int
+  createdAt    DateTime @default(now())
+}
+
+model TicketComment {
+  id              String                    @id @default(cuid())
+  ticketId        String
+  ticket          Ticket                    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorId        String
+  author          User                      @relation(fields: [authorId], references: [id])
+  kind            String                    @default("CHAT")
+  content         String
+  readByCreatorAt DateTime?
+  readByOpsAt     DateTime?
+  attachments     TicketCommentAttachment[]
+  createdAt       DateTime                  @default(now())
+
+  @@index([ticketId, createdAt])
+}
+
+model TicketCommentAttachment {
+  id           String        @id @default(cuid())
+  commentId    String
+  comment      TicketComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  uploaderId   String
+  uploader     User          @relation(fields: [uploaderId], references: [id])
+  originalName String
+  storagePath  String
+  mimeType     String
+  size         Int
+  createdAt    DateTime      @default(now())
+
+  @@index([commentId])
+}
+
+model Notification {
+  id            String    @id @default(cuid())
+  dedupeKey     String?   @unique
+  recipient     String
+  title         String
+  description   String
+  url           String?
+  status        String    @default("PENDING")
+  attempts      Int       @default(0)
+  nextAttemptAt DateTime  @default(now())
+  sentAt        DateTime?
+  lastError     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([status, nextAttemptAt])
+}

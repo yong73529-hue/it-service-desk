@@ -1,0 +1,8 @@
+"use client";
+import { useActionState } from "react";
+import { updateUserPermissionsAction, type ActionState } from "@/app/actions";
+import { FormSubmitButton } from "@/components/FormSubmitButton";
+export function UserPermissionForm({ userId, ops, admin, lockedOps, lockedAdmin }: { userId: string; ops: boolean; admin: boolean; lockedOps: boolean; lockedAdmin: boolean }) {
+  const [state, action] = useActionState(updateUserPermissionsAction, {} as ActionState);
+  return <form action={action} className="mt-3 sm:mt-0" onSubmit={(event) => { if (!window.confirm("确定修改该成员权限吗？变更将立即生效并发送企业微信提醒。")) event.preventDefault(); }}><input type="hidden" name="userId" value={userId}/><div className="flex flex-wrap items-center gap-3"><span className="rounded-md bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600">员工</span><label className="flex items-center gap-2 rounded-md border border-[var(--line)] px-3 py-2 text-sm"><input type="checkbox" name="roles" value="OPS" defaultChecked={ops} disabled={lockedOps}/><span>运维{lockedOps ? "（配置锁定）" : ""}</span></label>{lockedOps && <input type="hidden" name="roles" value="OPS"/>}<label className="flex items-center gap-2 rounded-md border border-[var(--line)] px-3 py-2 text-sm"><input type="checkbox" name="roles" value="ADMIN" defaultChecked={admin} disabled={lockedAdmin}/><span>管理员{lockedAdmin ? "（配置锁定）" : ""}</span></label>{lockedAdmin && <input type="hidden" name="roles" value="ADMIN"/>}<FormSubmitButton className="btn btn-secondary">保存权限</FormSubmitButton></div>{state.error && <p className="mt-2 text-xs font-semibold text-red-600">{state.error}</p>}{state.success && <p className="mt-2 text-xs font-semibold text-emerald-700">{state.success}</p>}</form>;
+}

@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function Forbidden() { return <main className="grid min-h-[100dvh] place-items-center p-6"><div className="surface max-w-md p-8 text-center"><p className="text-sm font-bold text-red-700">403</p><h1 className="mt-2 text-2xl font-bold">无权访问此页面</h1><p className="mt-3 text-sm text-slate-500">当前身份没有访问该功能的权限。</p><Link href="/" className="btn btn-primary mt-6">返回系统首页</Link></div></main>; }

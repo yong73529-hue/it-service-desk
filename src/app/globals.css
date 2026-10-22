@@ -1,0 +1,110 @@
+@import "tailwindcss";
+:root {
+  --ink: #14212b;
+  --muted: #66737d;
+  --line: #dce2e5;
+  --paper: #f5f7f6;
+  --accent: #ba6b25;
+  --nav: #182a35;
+}
+* {
+  box-sizing: border-box;
+}
+html {
+  background: var(--paper);
+}
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Arial, "Microsoft YaHei", sans-serif;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+:focus-visible {
+  outline: 3px solid #d28a49;
+  outline-offset: 2px;
+}
+.surface {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+}
+.label {
+  display: block;
+  color: #35444e;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.input {
+  width: 100%;
+  border: 1px solid #cdd5d9;
+  border-radius: 0.5rem;
+  background: white;
+  padding: 0.7rem 0.8rem;
+  color: #17252f;
+  transition: border-color 0.15s;
+}
+.input.input-with-icon {
+  padding-left: 2.75rem;
+}
+.input:focus {
+  border-color: #9c591e;
+  outline: 2px solid #ecd5c0;
+  outline-offset: 0;
+}
+.btn {
+  display: inline-flex;
+  min-height: 2.6rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.5rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  transition:
+    transform 0.15s,
+    background 0.15s;
+  cursor: pointer;
+}
+.btn:active {
+  transform: scale(0.98);
+}
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+.btn-primary:hover {
+  background: #99551d;
+}
+.btn-secondary {
+  border: 1px solid #cdd5d9;
+  background: white;
+  color: #263742;
+}
+.btn-danger {
+  background: #9f3737;
+  color: white;
+}
+.table-row {
+  border-top: 1px solid var(--line);
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}

@@ -1,0 +1,12 @@
+ALTER TABLE "User" ADD COLUMN "opsAvailable" BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE "User" ADD COLUMN "notifyNewTickets" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "User" ADD COLUMN "notifyReplies" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "User" ADD COLUMN "notifySla" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "User" ADD COLUMN "notifyDaily" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "User" ADD COLUMN "notificationsPaused" BOOLEAN NOT NULL DEFAULT false;
+CREATE TABLE "SlaPolicy" ("id" TEXT NOT NULL PRIMARY KEY,"category" TEXT NOT NULL,"normalResponseMinutes" INTEGER NOT NULL DEFAULT 120,"urgentResponseMinutes" INTEGER NOT NULL DEFAULT 30,"normalResolutionMinutes" INTEGER NOT NULL DEFAULT 1440,"urgentResolutionMinutes" INTEGER NOT NULL DEFAULT 240,"businessStartHour" INTEGER NOT NULL DEFAULT 8,"businessEndHour" INTEGER NOT NULL DEFAULT 18,"businessDays" TEXT NOT NULL DEFAULT '1,2,3,4,5',"updatedAt" DATETIME NOT NULL);
+CREATE UNIQUE INDEX "SlaPolicy_category_key" ON "SlaPolicy"("category");
+CREATE TABLE "DutySchedule" ("id" TEXT NOT NULL PRIMARY KEY,"date" TEXT NOT NULL,"userId" TEXT NOT NULL,"createdById" TEXT,"createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT "DutySchedule_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE,CONSTRAINT "DutySchedule_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE);
+CREATE UNIQUE INDEX "DutySchedule_date_key" ON "DutySchedule"("date");
+CREATE TABLE "SavedTicketFilter" ("id" TEXT NOT NULL PRIMARY KEY,"userId" TEXT NOT NULL,"name" TEXT NOT NULL,"query" TEXT NOT NULL,"createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT "SavedTicketFilter_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE);
+CREATE INDEX "SavedTicketFilter_userId_createdAt_idx" ON "SavedTicketFilter"("userId", "createdAt");
